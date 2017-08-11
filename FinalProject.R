@@ -54,6 +54,15 @@ violations["Received.Citation"] <- is_citation_dummy
 in_state_dummy <- as.numeric(violations$State == "MD")
 violations["In.State"] <- in_state_dummy
 
+
+
+#add bright color category and create bright color column
+bright <- c("RED","PINK","YELLOW","MULTICOLOR","GOLD",'ORANGE')
+
+is.bright <- as.numeric(violations$Color %in% bright)
+
+
+
 unique(violations$Race)
 race_black <- as.numeric(violations$Race == "BLACK")
 race_white <- as.numeric(violations$Race == "WHITE")
@@ -65,6 +74,10 @@ violations["Race.white"] <- race_white
 violations["Race.asian"] <- race_asian
 violations["Race.hispanic"] <- race_hispanic
 violations["Race.native_american"] <- race_native_american
+violations["is.bright"] <- is.bright
+
+
+
 
 #Remove columns with dummy variables
 unneeded_columns <- c("Time.Of.Stop", "State", "Color", "Race", "Gender", "Violation.Type")
@@ -72,3 +85,6 @@ keptColumns <- setdiff(names(violations), unneeded_columns)
 violations <- violations[keptColumns]
 #Drop unused factors
 violations[] <- lapply(violations, function(x) if(is.factor(x)) factor(x) else x)
+
+
+
