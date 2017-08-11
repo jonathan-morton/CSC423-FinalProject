@@ -7,7 +7,6 @@ keptColumns <- c("Time.Of.Stop", "Accident", "Belts", "Personal.Injury", "Proper
 violations <- violations[keptColumns]
 
 unique(violations$Gender)
-unique(violations$Race)
 unique(violations$Color)
 
 summary(violations)
@@ -18,6 +17,7 @@ keptColumns <- c("Time.Of.Stop", "Belts", "Personal.Injury", "Property.Damage", 
                  "Contributed.To.Accident", "Race", "Gender")
 violations <- violations[keptColumns]
 violationsCopy <- violations
+violations <- violationsCopy
 
 summary(violations)
 
@@ -43,12 +43,25 @@ violations[violations == "Yes"] <- 1
 violations[violations == "N/A"] <- NA
 violations[violations == "XX"] <- NA
 violations$Gender[violations$Gender == "U"] <- NA
-
-stateValues <- unique(violations$State)
 violations[violations == ""] <- NA
 
 is_male_dummy <- as.numeric(violations$Gender == "M")
+violations["Is.Male"] <- is_male_dummy
+
 is_citation_dummy <- as.numeric(violations$Violation.Type == "Citation")
+violations["Received.Citation"] <- is_citation_dummy
+
+unique(violations$Race)
+race_black <- as.numeric(violations$Race == "BLACK")
+race_white <- as.numeric(violations$Race == "WHITE")
+race_asian <- as.numeric(violations$Race == "ASIAN")
+race_hispanic <- as.numeric(violations$Race == "HISPANIC")
+race_native_american <- as.numeric(violations$Race == "NATIVE AMERICAN")
+violations["Race.black"] <- race_black
+violations["Race.white"] <- race_white
+violations["Race.asian"] <- race_asian
+violations["Race.hispanic"] <- race_hispanic
+violations["Race.native_american"] <- race_native_american
 
 #Drop unused factors
 violations[] <- lapply(violations, function(x) if(is.factor(x)) factor(x) else x)
