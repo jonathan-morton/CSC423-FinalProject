@@ -1,9 +1,9 @@
 #Final Project - Jonathan Morton - Kevin Lao
+install.packages("car")
+require("car")
 
 violations <- read.csv("Traffic_Violations.csv", header = TRUE)
-keptColumns <- c("Time.Of.Stop", "Accident", "Belts", "Personal.Injury", "Property.Damage", "Fatal", "Commercial.License",
-                 "HAZMAT", "Commercial.Vehicle", "Alcohol", "Work.Zone", "State", "Year", "Color", "Violation.Type",
-                 "Contributed.To.Accident", "Race", "Gender")
+keptColumns <- c("State", "Year", "Color", "Violation.Type", "Race", "Gender")
 violations <- violations[keptColumns]
 
 unique(violations$Gender)
@@ -11,11 +11,6 @@ unique(violations$Color)
 
 summary(violations)
 
-#Remove accident since all are No
-keptColumns <- c("Time.Of.Stop", "Belts", "Personal.Injury", "Property.Damage", "Fatal", "Commercial.License",
-                 "HAZMAT", "Commercial.Vehicle", "Alcohol", "Work.Zone", "State", "Year", "Color", "Violation.Type",
-                 "Contributed.To.Accident", "Race", "Gender")
-violations <- violations[keptColumns]
 violationsCopy <- violations
 violations <- violationsCopy
 
@@ -54,14 +49,14 @@ violations["Received.Citation"] <- is_citation_dummy
 in_state_dummy <- as.numeric(violations$State == "MD")
 violations["In.State"] <- in_state_dummy
 
-
-
 #add bright color category and create bright color column
 bright <- c("RED","PINK","YELLOW","MULTICOLOR","GOLD",'ORANGE')
 
 is.bright <- as.numeric(violations$Color %in% bright)
 
-
+sort(unique(violations$Year))
+violations$Year[violations$Year < 1920] <- NA
+violations$Year[violations$Year > 2017] <- NA
 
 unique(violations$Race)
 race_black <- as.numeric(violations$Race == "BLACK")
@@ -76,15 +71,29 @@ violations["Race.hispanic"] <- race_hispanic
 violations["Race.native_american"] <- race_native_american
 violations["is.bright"] <- is.bright
 
-
-
-
 #Remove columns with dummy variables
-unneeded_columns <- c("Time.Of.Stop", "State", "Color", "Race", "Gender", "Violation.Type")
+unneeded_columns <- c("State", "Color", "Race", "Gender", "Violation.Type")
 keptColumns <- setdiff(names(violations), unneeded_columns)
 violations <- violations[keptColumns]
 #Drop unused factors
 violations[] <- lapply(violations, function(x) if(is.factor(x)) factor(x) else x)
 
+# Perform backward selection to pick best model.
+fullModel <- glm(violations$Received.Citation ~ 
+                  violations$Year +
+                  violations$Is.Male +
+                  violations$Race.black +
+                  violations$Race.white +
+                  violations$Race.asian +
+                  violations$Race.hispanic +
+                  violations$Race.native_american +
+                  violations$In.State,
+                 data=violations, family=binomial(link="logit"))
+summary(fullModel)
 
-
+# cat("\nBackward Selection:\n")
+# modelNew <- step(fullModel, direction="backward")
+# print(summary(modelNew))
+#
+# cat("Predicted Values:\n")
+# print(fitted(modelNew, type="response"))
