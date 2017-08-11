@@ -51,6 +51,9 @@ violations["Is.Male"] <- is_male_dummy
 is_citation_dummy <- as.numeric(violations$Violation.Type == "Citation")
 violations["Received.Citation"] <- is_citation_dummy
 
+in_state_dummy <- as.numeric(violations$State == "MD")
+violations["In.State"] <- in_state_dummy
+
 unique(violations$Race)
 race_black <- as.numeric(violations$Race == "BLACK")
 race_white <- as.numeric(violations$Race == "WHITE")
@@ -63,5 +66,9 @@ violations["Race.asian"] <- race_asian
 violations["Race.hispanic"] <- race_hispanic
 violations["Race.native_american"] <- race_native_american
 
+#Remove columns with dummy variables
+unneeded_columns <- c("Time.Of.Stop", "State", "Color", "Race", "Gender", "Violation.Type")
+keptColumns <- setdiff(names(violations), unneeded_columns)
+violations <- violations[keptColumns]
 #Drop unused factors
 violations[] <- lapply(violations, function(x) if(is.factor(x)) factor(x) else x)
