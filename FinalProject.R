@@ -3,6 +3,8 @@ install.packages("car")
 require("car")
 
 violations <- read.csv("Traffic_Violations.csv", header = TRUE)
+violations <- violations[sample(nrow(violations), 300000), ]
+
 keptColumns <- c("State", "Year", "Color", "Violation.Type", "Race", "Gender")
 violations <- violations[keptColumns]
 
@@ -24,14 +26,14 @@ violations[violations == "SERO"] <- NA
 violations[!complete.cases(violations),]
 #Year has NA
 for(i in 1:ncol(violations)) {
-  if(is.factor(violations[,i])) {
-    if("No" %in% violations[,i]){
-      levels(violations[,i]) <- c(levels(violations[,i]),0)
+    if(is.factor(violations[,i])) {
+        if("No" %in% violations[,i]){
+            levels(violations[,i]) <- c(levels(violations[,i]),0)
+        }
+        if("Yes" %in% violations[,i]){
+            levels(violations[,i]) <- c(levels(violations[,i]),1)
+        }
     }
-    if("Yes" %in% violations[,i]){
-      levels(violations[,i]) <- c(levels(violations[,i]),1)
-    }
-  }
 }
 violations[violations == "No"] <- 0
 violations[violations == "Yes"] <- 1
@@ -79,21 +81,31 @@ violations <- violations[keptColumns]
 violations[] <- lapply(violations, function(x) if(is.factor(x)) factor(x) else x)
 
 # Perform backward selection to pick best model.
-fullModel <- glm(violations$Received.Citation ~ 
-                  violations$Year +
-                  violations$Is.Male +
-                  violations$Race.black +
-                  violations$Race.white +
-                  violations$Race.asian +
-                  violations$Race.hispanic +
-                  violations$Race.native_american +
-                  violations$In.State,
-                 data=violations, family=binomial(link="logit"))
+fullModel <- glm(violations$Received.Citation ~
+violations$Year +
+    violations$Is.Male +
+    violations$Race.black +
+    violations$Race.white +
+    violations$Race.asian +
+    violations$Race.hispanic +
+    violations$Race.native_american +
+    violations$In.State,
+data=violations, family=binomial(link="logit"))
 summary(fullModel)
+plot(x = predict(fullModel), y = residuals(fullModel))
+cat("\nBackward Selection:\n")
+modelNew <- step(fullModel, direction="backward")
+print(summary(modelNew))
 
-# cat("\nBackward Selection:\n")
-# modelNew <- step(fullModel, direction="backward")
-# print(summary(modelNew))
-#
-# cat("Predicted Values:\n")
-# print(fitted(modelNew, type="response"))
+sum(modelNew$coefficients)
+confint(modelNew)
+
+exp(coef(modelNew))
+
+cat("Predicted Values:\n")
+print(fitted(modelNew, type="response"))
+
+plot(x = predict(modelNew), y = residuals(modelNew))
+
+#Influence Points
+#influence.measures(modelNew)
